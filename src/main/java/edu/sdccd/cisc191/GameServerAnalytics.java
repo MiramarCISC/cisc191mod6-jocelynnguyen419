@@ -29,7 +29,7 @@ public class GameServerAnalytics {
         Set <String> duplicates = new java.util.HashSet<>();
 
         for (PlayerAccount player : players) {
-            if (!duplicates.contains(player.username())) {
+            if (!seen.add(player.username())) {
                 duplicates.add(player.username());
             }
         }
@@ -55,8 +55,7 @@ public class GameServerAnalytics {
         for (MatchRecord match : matches) {
             String p1 = match.playerOne().username();
             String p2 = match.playerTwo().username();
-
-            String summary = p1 + " vs. " + p2;
+            String summary =  match.summary();
 
             recentMatches.computeIfAbsent(p1, k -> new java.util.ArrayList<>()).add(summary);
             recentMatches.computeIfAbsent(p2, k -> new java.util.ArrayList<>()).add(summary);
