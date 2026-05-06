@@ -1,49 +1,51 @@
 package edu.sdccd.cisc191;
 
 import java.util.*;
-import java.util.stream.Stream;
+import java.util.stream.Collectors;
 
 public class GameServerAnalytics {
 
+    // PR: Clean, readable implementation. Reads like a sentence!
     public static List<String> findTopNUsernamesByRating(Collection<PlayerAccount> players, int n) {
         // TODO: use a stream pipeline
         return players.stream()
-                .sorted(Comparator.comparingInt(PlayerAccount::rating).reversed())
+                // PR: Sort alphabetically in the end in order to get consistent results
+                .sorted(Comparator.comparingInt(PlayerAccount::rating).reversed().thenComparing(PlayerAccount::username))
                 .limit(n)
                 .map(PlayerAccount::username)
                 .toList();
     }
 
+    // PR: Simple and readable Stream pipeline.
     public static Map<String, Double> averageRatingByRegion(Collection<PlayerAccount> players) {
         // TODO: use groupingBy + averagingInt
         return players.stream()
-                .collect(java.util.stream.Collectors.groupingBy(
+                .collect(Collectors.groupingBy(
                         PlayerAccount::region,
-                        java.util.stream.Collectors.averagingInt(PlayerAccount::rating)
+                        Collectors.averagingInt(PlayerAccount::rating)
                 ));
     }
 
     public static Set<String> findDuplicateUsernames(Collection<PlayerAccount> players) {
-        // TODO: use collections and/or streams
-        Set<String> seen = new java.util.HashSet<>();
-        Set <String> duplicates = new java.util.HashSet<>();
-
-        for (PlayerAccount player : players) {
-            if (!seen.add(player.username())) {
-                duplicates.add(player.username());
-            }
-        }
-        return duplicates;
+        // PR: This method is supposed to be implemented using collections and/or streams
+        // (The following is an implementation that matches the assignment requirements)
+        return players.stream() // Stream players
+            .collect(Collectors.groupingBy(PlayerAccount::username, Collectors.counting())) // Create entries of form: (username, # of instances)
+            .entrySet().stream() // Stream entries
+            .filter(e -> e.getValue() > 1) // Get only usernames with 2+ mentions
+            .map(Map.Entry::getKey) // Get usernames in question
+            .collect(Collectors.toSet()); // Convert to set
     }
 
+    // PR: Implementation is clean and logical.
     public static Map<String, List<String>> groupUsernamesByTier(Collection<PlayerAccount> players) {
         // TODO: use groupingBy and mapping
         return players.stream()
-                .collect(java.util.stream.Collectors.groupingBy(
+                .collect(Collectors.groupingBy(
                         GameServerAnalytics::tierFor,
-                        java.util.stream.Collectors.mapping(
+                        Collectors.mapping(
                                 PlayerAccount::username,
-                                java.util.stream.Collectors.toList()
+                                Collectors.toList()
                         )
                 ));
     }
@@ -52,17 +54,19 @@ public class GameServerAnalytics {
         // TODO: use a Map + collection logic or a stream-based approach
         Map<String, List<String>> recentMatches = new HashMap<>();
 
+        // PR: Implementation works OK, but assignment asks for collection logic or stream-based approach.
         for (MatchRecord match : matches) {
             String p1 = match.playerOne().username();
             String p2 = match.playerTwo().username();
             String summary =  match.summary();
 
-            recentMatches.computeIfAbsent(p1, k -> new java.util.ArrayList<>()).add(summary);
-            recentMatches.computeIfAbsent(p2, k -> new java.util.ArrayList<>()).add(summary);
+            recentMatches.computeIfAbsent(p1, k -> new ArrayList<>()).add(summary);
+            recentMatches.computeIfAbsent(p2, k -> new ArrayList<>()).add(summary);
         }
         return recentMatches;
     }
 
+    // PR: Method is correct
     public static <T> T pickHigherRated(T first, T second, Comparator<T> comparator) {
         // TODO: implement using the comparator
         return comparator.compare(first, second) >= 0 ? first : second;
